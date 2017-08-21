@@ -1,0 +1,378 @@
+#!/usr/bin/ksh
+#***********************************************************
+#
+# Name:       psbatProfile
+#
+#
+# Function:   Sourcing this script establishes the standard
+#             working environment for the psbat application.
+#  
+#************************************************************
+#
+# Modification History:
+#
+# Date      By                Description
+# ========= ================= ===============================
+# 05/01/12     Greg Nienhaus    Initial Version
+# 10/01/13     Infosys          Added FPS related connnections
+# 10/22/2015   ADI5776          Added CONTLBRDATAPATH to the profile script
+# 08/11/2016   Priya S          Changes for Informatica version 9.6 upgrade  
+# 11/17/2016   Rich Fenger      Added sourcing of autosys.sh.PRD to correct sendevent with autosys
+# 06/22/2017   Denise Sagat     Changes to PSOFT from PS853 and 
+#                               wrapper nmauto_psft to nmauto_psoft 
+# 07/23/2017   Denise Sagat     need to comment CLASSPATH=${CLASSPATH}:${LIBPATH}/sqljdbc4.jar 
+# 08/07/2017   Vaibhav Agarwal  Updated the ComboEditURL for production for 9.2 SSL Implementation 
+#*************************************************************  
+
+# Sourcing the appropriate Global Profile
+ENVIRONMENT=nmlprod
+export  ENVIRONMENT
+
+export APPLID=psbat   
+
+. /${ENVIRONMENT}/common/scripts/globalProfile
+
+#Included the DB2 Profile
+. /opt/udb/home/db2udb9
+
+#   Current Revision
+#
+export PROFILE_REVISION=`echo '$Revision:   1.00  $' | awk '{print $2}'`
+#. ${SCRIPTPATH}/psbatFuncProcessSession
+
+itanium=$(uname -a | grep ia64)
+if [ -n "$itanium" ]
+then
+    export PATH=/${ENVIRONMENT}/common/bin/itanium:$PATH
+fi
+
+if [ -f /opt/powerctr/common/scripts/.profile_current ]; then
+    . /opt/powerctr/common/scripts/.profile_current
+fi
+  
+  # Verify that these variables are set, otherwise set to ""
+  export PATH=${PATH:-""}
+  export BINPATH=${BINPATH:-""}
+  export LIBPATH=${LIBPATH:-""}
+  export SHLIB_PATH=${SHLIB_PATH:-""}
+
+  # export additional Path Setup
+  export PATH=/opt/perl/bin:/opt/java6/bin/:${PATH}
+  export SHLIB_PATH=/usr/lib/:/opt/mqm/java/lib:${SHLIB_PATH}
+  export PATH=/opt/perl/bin:/opt/java6/bin/:/usr/contrib/bin/:${PATH}
+  export CLASSPATH=/opt/mqm/java/lib:${CLASSPATH}
+
+#   Setting application specific environment variables
+#
+  
+export APPPATH=/${ENVIRONMENT}/${APPLID}
+export BINPATH=${APPPATH}/bin
+export DATAPATH=${APPPATH}/data
+export PSLEDGERDATAPATH=/${ENVIRONMENT}/psledger/data
+export LOGPATH=${APPPATH}/logs
+export MSGPATH=${APPPATH}/logs
+export RPTPATH=${APPPATH}/rpts
+export SCRIPTPATH=${APPPATH}/scripts
+export SOURCEPATH=${APPPATH}/source
+export SQLPATH=${APPPATH}/sql
+export CONFIGPATH=${APPPATH}/config
+export LIBPATH=${APPPATH}/lib
+export TRIGGERPATH=/${ENVIRONMENT}/common/triggers/${APPLID}
+export PSLEDGERTRIGGERPATH=/${ENVIRONMENT}/common/triggers/psledger
+export INFDATAPATH=${APPPATH}/data/pwrctr
+export INFLOGPATH=${LOGPATH}/pwrctr
+export BADPATH=${DATAPATH}/pwrctr
+export PARAMPATH=${DATAPATH}/pwrctr
+export ARCHIVEPATH=${DATAPATH}/archive
+export PSPRCSDATAPATH=${DATAPATH}/appote/psprcs
+export GLPSPRCSDATAPATH=${DATAPATH}/glpsprcs
+export ETRVLDATAPATH=/${ENVIRONMENT}/etravel/data
+export CONTLBRDATAPATH=/${ENVIRONMENT}/contlbr/data
+export APPLOG="${LOGPATH}/${AUTO_JOB_NAME}.${AUTORUN}.applog"
+export SQLLOG="${LOGPATH}/${AUTO_JOB_NAME}.${AUTORUN}.sqllog"
+export FTPOUT="${LOGPATH}/${AUTO_JOB_NAME}.${AUTORUN}.ftpout"
+export VARLOG="${LOGPATH}/${AUTO_JOB_NAME}.${AUTORUN}.varlog"
+export RPTLOG="${LOGPATH}/${AUTO_JOB_NAME}.${AUTORUN}.actlog"
+export CRYPTOFILE=/${ENVIRONMENT}/${APPLID}/config/CryptoEncryptedpsbatSecurity
+export MAINFRAME_HOST=ibmftppr                  # Mainframe hostname
+export PSBAT_UDB_ID=psbat_db
+export ERROR_EMAIL_ADDRESS="IS-PSBAT-MSGS"
+export REPOSITORY_FOLDER="PSBAT_DIH"
+export INFORMATICA_FOLDER=PSBAT_DIH
+#export INFA_USER_CRYPTO_KEY=psbat_infa
+export INFA_USER_CRYPTO_KEY=psbat_INFA
+#export INFA_USER_CRYPTO_KEY=psbat_infra
+export PSBATCH_OPRID=PSBATCH
+#export INFORMATICA_USER=psbat_infa
+export INFORMATICA_USER=psbat_INFA
+export PSBAT_OUTBOUND_FOLDER=PSBAT_OUTBOUND
+# 06/22/2017 nmauto_psft change to nmauto_psoft Begin
+export PSAUTOSYSADAPTER=nmauto_psoft
+# 06/22/2017 nmauto_psft change to nmauto_psoft End
+
+#Defnining JAVA variables
+export JAVA_HOME=/opt/java6/bin
+CLASSPATH=${CLASSPATH}:${LIBPATH}/NMLSQLSvrj.jar
+CLASSPATH=${CLASSPATH}:${LIBPATH}/NMCryptoReader_version1.1.jar
+#CLASSPATH=${CLASSPATH}:${LIBPATH}/sqljdbc4.jar
+CLASSPATH=${CLASSPATH}:${LIBPATH}/log4j-1.2.12.jar
+CLASSPATH=${CLASSPATH}:${LIBPATH}/sax.jar
+CLASSPATH=${CLASSPATH}:${LIBPATH}/xercesImpl.jar
+CLASSPATH=${CLASSPATH}:${CONFIGPATH}/
+export CLASSPATH 
+
+#SQL server DB connection used by the wrapper.
+#PSPRD
+export SQLDB=${CONFIGPATH}/dbunix.properties
+
+#psbat_PeopleSoftWS  for PSDEV/PSINT/PSUAT/PSPRD
+export Web_Service=psbat_PeopleSoftWS 
+#psbat_PeopleSoftWS_STG for PSSTG
+#export Web_Service=psbat_PeopleSoftWS_STG 
+
+# NML Accounting Date controls
+export DMOVERRIDEFILE="test.NMDATE.override"   # NML acct. date override file
+export NML_ACCTG_DATE=`nml_acctg_date -dNMDATE -n$DMOVERRIDEFILE`
+
+export ETL_ACTIVE=0
+export ETL_COMPLETE=99
+export ETL_INACTIVE="-1"
+export ETL_WAIT=60
+
+export REPORT_ACTIVE=0
+export REPORT_COMPLETE=99
+export REPORT_INACTIVE="-1"
+
+#*******************************************************************************
+#   Declare Global Batch Operation & Reporting Variables
+#*******************************************************************************
+export  COLUMNS130="----+----1----+----2----+----3----+----4----+----5----+----6----+----7----+----8----+----9----+----0----+----1----+----2----+----3--"
+export   COLUMNS80="----+----1----+----2----+----3----+----4----+----5----+----6----+----7----+----8"
+export      DASHES="========================"
+export     SUCCESS=0
+export     FAILURE=1
+export   SEPERATOR='@'
+
+#   Variables used to determine if function files have been loaded.
+#
+export          DEFINED="DEFINED"
+export       NOTDEFINED="NOT DEFINED"
+export          FUNCDB2="NOT DEFINED"
+export          FUNCPBD="NOT DEFINED"
+export          FUNCLOG="NOT DEFINED"
+export     FUNCMETADATA="NOT DEFINED"
+export  FUNCMETADATAINF="NOT DEFINED"
+export      FUNCINFLOAD="NOT DEFINED"
+export          FUNCINF="NOT DEFINED"
+export       FUNCREPORT="NOT DEFINED"
+
+#   Path Setup
+#
+export PATH=${PATH}:/opt/perl/bin
+
+
+#*******************************************************************************
+# Autosys and DB2 parameters
+#*******************************************************************************
+#This is the pass thru instance for UDB connections
+if [ "$ENVIRONMENT" = "nmlprod" ]; then
+    export DB2INSTANCE_SV=pdbin017
+    export DB2DATABASE_SV=SVCMARTP
+    export DB2OWNER_SV=SVCMARTP
+    export DB2USERID_SV=smrudbp
+    export PSDBNAME=PSPRD    
+    export FINDWDATABASE=FINDWP
+    export FINDMDATABASE=FINDMP
+    export FINDWSCHEMA=FINDW
+    export FINDMSCHEMA=FINDM
+    export PSBAT_DBID=psbat_db
+    export PSOFT_RESOURCEID=psbat
+      
+#Autosys Library Information   
+#     export GLAUTOSYSPATH=/opt/CA/WorkloadAutomationAE               
+#     export ODBC_HOME=${GLAUTOSYSPATH}/odbcHP11_64B/HP11_64B  
+#     export AUTOUSER=${GLAUTOSYSPATH}/autouser.PRD
+#     export AUTOSYSPROFILE=${AUTOUSER}/autosys.sh.PRD  		
+#     export ODBCDIR=${ODBC_HOME}                           
+#     export ADAPTER=${ODBC_HOME}/odbcenv.sh  
+
+####################################
+    #New Values from PeopleSoft Upgrade project
+    # 06/22/2017 PS853 to PSOFT changes Begin
+    . /nmlprod/psbat/config/autosys_adapter/PSOFT/autouser.PRD/autosys.sh.PRD              
+    . /nmlprod/psbat/config/autosys_adapter/PSOFT/odbc/odbc.sh
+    # 20161117 RJF Source autosys.sh.PRD to fix sendevent    
+    . /opt/CA/WorkloadAutomationAE/autouser.PRD/autosys.sh.PRD
+    export AUTOUSER=/nmlprod/psbat/config/autosys_adapter/PSOFT/autouser.PRD
+    # 06/22/2017 PS853 to PSOFT changes End
+    #export AUTOSYS=/nmlprod/psbat/config/autosys_adapter/PS853/autosys
+    #Old values before Peoplesoft Upgrade project
+    #. /nmlpkgs/autosys/autosysR11_PS852/PS852PRD/autouser.PRD/autosys.sh.PRD
+    #. /nmlpkgs/autosys/autosysR11_PS852/PS852PRD/odbc/odbc.sh
+    #export AUTOUSER=/nmlpkgs/autosys/autosysR11_PS852/PS852PRD/autouser.PRD
+    #export AUTOSYS=/nmlpkgs/autosys/autosysR11_PS852/PS852PRD/autosys
+####################################
+    
+#Changes for Informatica version upgrade on new Unix machine begins
+    #export AUTOSYSPROFILE=${AUTOUSER}/autosys.sh.PRD
+    export AUTOSYSPROFILE=/opt/CA/WorkloadAutomationAE/autouser.PRD/autosys.sh.PRD
+#Changes for Informatica version upgrade on new Unix machine ends    
+    export PSPRD=${AUTOUSER}/PSPRD.env
+# Hardcode PID to get rid of warning message in the log file    
+    export AUTOPID=111    
+    
+    
+# Informatica Database connection Variable
+export DBConnection_MVS=psbat_MVS
+export DBConnection_Source_EBIS=psbat_SALESCAT_inqy
+export DBConnection_EBIS=psbat_EBISOPR_Inqy    
+export DBConnection_Source=psbat_PSPRD_updt
+export DBConnection_Target=psbat_FINDW_updt
+export DBConnection_Source_DM=psbat_FINDW_updt
+export DBConnection_Target_DM=psbat_FINDM_updt
+export DBConnection_Source_OB=psbat_FINDM_updt
+export ComboEditURL=https://psprd.nml.com:51043/PSIGW/PeopleSoftServiceListeningConnector
+export PS_GL_SUPPORT_EMAIL="PSGLSUPPORT"
+export COGNOS_USERS="CT-COGNOS-USERS"
+export COGNOS_ADMIN="CT-COGNOS-ADMIN"
+export RSALocation="/ho/dfs01/work/Contrlrs/RSA/Fin Platform/Control Balancing"
+export RSAPDL="CT-RSA-FP-SUPPORT"
+
+   
+elif [ "$ENVIRONMENT" = "nmlstage" ]; then
+    export DB2INSTANCE_SV=tdbprmt2
+    export DB2DATABASE_SV=SVCMARTS
+    export DB2OWNER_SV=SVCMARTS
+    export DB2USERID_SV=smrudbs
+    export PSDBNAME=PSUAT
+    export FINDWDATABASE=FINDWS
+    export FINDMDATABASE=FINDMS
+    export FINDWSCHEMA=FINDW
+    export FINDMSCHEMA=FINDM
+    export PSBAT_DBID=psbat_db
+    export PSOFT_RESOURCEID=psbats
+   
+#Autosys Library Information   
+#     export GLAUTOSYSPATH=/opt/CA/WorkloadAutomationAE               
+#     export ODBC_HOME=${GLAUTOSYSPATH}/odbcHP11_64B/HP11_64B  
+#     export AUTOUSER=${GLAUTOSYSPATH}/autouser.STG
+#     export AUTOSYSPROFILE=${AUTOUSER}/autosys.sh.STG  		
+#     export ODBCDIR=${ODBC_HOME}                           
+#     export ADAPTER=${ODBC_HOME}/odbcenv.sh                
+# 06/22/2017 PS853 to PSOFT changes Begin
+    . /nmlstage/psbat/config/autosys_adapter/PSOFT/autouser.STG/autosys.sh.STG
+    . /nmlstage/psbat/config/autosys_adapter/PSOFT/odbc/odbc.sh
+    export AUTOUSER=/nmlstage/psbat/config/autosys_adapter/PSOFT/autouser.STG
+    export AUTOSYSPROFILE=${AUTOUSER}/autosys.sh.STG
+    export PSSIT=${AUTOUSER}/PSSIT.env
+    export PSSTG=${AUTOUSER}/PSSTG.env
+    export PSUAT=${AUTOUSER}/PSUAT.env
+    export PSINT=${AUTOUSER}/PSINT.env
+    export AUTOSYS=/nmlstage/psbat/config/autosys_adapter/PSOFT/autosys
+
+if [ "$SHLIB_PATH" = "" ]; then
+	SHLIB_PATH=/nmlstage/psbat/config/autosys_adapter/PSOFT/odbc/lib
+else
+	SHLIB_PATH=/nmlstage/psbat/config/autosys_adapter/PSOFT/odbc/lib:$SHLIB_PATH
+fi
+export SHLIB_PATH
+ODBC_HOME=/nmlstage/psbat/config/autosys_adapter/PSOFT/odbc;export ODBC_HOME
+# 06/22/2017 PS853 to PSOFT changes End
+
+# Informatica Database connection Variable
+export DBConnection_MVS=psbat_MVS
+export DBConnection_Source_EBIS=psbat_SALESCAT_inqy
+#export DBConnection_EBIS=psbat_EBISOPR_Inqy
+export DBConnection_EBIS=psbat_EBISOPR2_Inqy
+export DBConnection_Source=psbat_PSUAT_updt
+export DBConnection_Target=psbat_FINDWS_updt
+export DBConnection_Source_DM=psbat_FINDWS_updt
+export DBConnection_Target_DM=psbat_FINDMS_updt
+export DBConnection_Source_OB=psbat_FINDMS_updt       
+#export ComboEditURL=http://pssit.nml.com:51007/PSIGW/PeopleSoftServiceListeningConnector
+#export ComboEditURL=http://psint.nml.com:51008/PSIGW/PeopleSoftServiceListeningConnector
+#export ComboEditURL=http://psstg.nml.com:51007/PSIGW/PeopleSoftServiceListeningConnector
+export ComboEditURL=http://psuat.nml.com:51010/PSIGW/PeopleSoftServiceListeningConnector
+
+
+export PS_GL_SUPPORT_EMAIL="PSGLSUPPORT"
+export COGNOS_USERS="CT-COGNOS-USERS"
+export COGNOS_ADMIN="CT-FPS-COGNOS-ADMIN"
+export RSALocation="/ho/dfs01/work/Contrlrs/RSA/Fin Platform/Control Balancing/"
+export RSAPDL="CT-RSA-FP-SUPPORT"
+
+elif [ "$ENVIRONMENT" = "nmltest" ]; then
+    export DB2INSTANCE_SV=tdbprmt2
+    export DB2DATABASE_SV=SVCMARTT
+    export DB2OWNER_SV=SVCMARTT
+    export DB2USERID_SV=smrudbt
+    export PSDBNAME=PSDEV
+    export FINDWDATABASE=FINDWD
+    export FINDMDATABASE=FINDMD
+    export FINDWSCHEMA=FINDW
+    export FINDMSCHEMA=FINDM
+    export PSBAT_DBID=psbat_db
+    export PSOFT_RESOURCEID=psbatt
+   
+#Autosys Library Information
+#     export GLAUTOSYSPATH=/opt/CA/WorkloadAutomationAE
+#     export ODBC_HOME=${GLAUTOSYSPATH}/odbcHP11_64B/HP11_64B
+#     export AUTOUSER=${GLAUTOSYSPATH}/autouser.TST
+#     export AUTOSYSPROFILE=${AUTOUSER}/autosys.sh.TST
+#     export ODBCDIR=${ODBC_HOME}                     
+#     export ADAPTER=${ODBC_HOME}/odbcenv.sh
+ 
+# 06/22/2017 PS853 to PSOFT changes Begin
+    . /nmltest/psbat/config/autosys_adapter/PSOFT/autouser.TST/autosys.sh.TST
+    . /nmltest/psbat/config/autosys_adapter/PSOFT/odbc/odbc.sh
+    export AUTOUSER=/nmltest/psbat/config/autosys_adapter/PSOFT/autouser.TST
+    export AUTOSYSPROFILE=${AUTOUSER}/autosys.sh.TST
+    export PSDEV=${AUTOUSER}/PSDEV.env
+    export PSSTG=${AUTOUSER}/PSSTG.env
+    export AUTOSYS=/nmltest/psbat/config/autosys_adapter/PSOFT/autosys
+
+if [ "$SHLIB_PATH" = "" ]; then
+	SHLIB_PATH=/nmltest/psbat/config/autosys_adapter/PSOFT/odbc/lib
+else
+	SHLIB_PATH=/nmltest/psbat/config/autosys_adapter/PSOFT/odbc/lib:$SHLIB_PATH
+fi
+export SHLIB_PATH
+ODBC_HOME=/nmltest/psbat/config/autosys_adapter/PSOFT/odbc;export ODBC_HOME
+# 06/22/2017 PS853 to PSOFT changes End
+
+# Informatica Database connection Variable
+export DBConnection_MVS=psbat_MVS
+export DBConnection_Source_EBIS=psbat_SALESCAT_inqy
+export DBConnection_EBIS=psbat_EBISOPR_Inqy
+export DBConnection_Source=psbat_PSDEV_updt
+export DBConnection_Target=psbat_FINDW_updt
+export DBConnection_Source_DM=psbat_FINDW_updt
+export DBConnection_Target_DM=psbat_FINDM_updt
+export DBConnection_Source_OB=psbat_FINDM_updt   
+export ComboEditURL=http://psdev.nml.com:51004/PSIGW/PeopleSoftServiceListeningConnector
+export PS_GL_SUPPORT_EMAIL="PSGLSUPPORT"
+export COGNOS_USERS="CT-COGNOS-USERS"
+export COGNOS_ADMIN="CT-FPS-COGNOS-ADMIN"
+export RSALocation="/ho/dfs01/work/Contrlrs/RSA/Fin Platform/Control Balancing/"
+export RSAPDL="CT-RSA-FP-SUPPORT"
+   
+fi
+
+#   The following variables define access to the UDB database
+#
+if [ -f /opt/udb/home/db2udb9 ]; then
+   export DB2PROFILE=/opt/udb/home/db2udb9
+   export PATH=/opt/udb/home/db2udb9:${PATH}
+elif [ -f /opt/udb/home/db2udb8 ]; then
+   export DB2PROFILE=/opt/udb/home/db2udb8
+   export PATH=/opt/udb/home/db2udb8:${PATH}
+fi
+
+ODBC_VER=6.0;export ODBC_VER
+ODBCINI=$ODBC_HOME/odbc.ini;export ODBCINI
+NO_SENDEVENT=1;export NO_SENDEVENT
+
+#*******************************************************************************
+#End of Application profile script psbatProfile
+#*******************************************************************************
+                                         
